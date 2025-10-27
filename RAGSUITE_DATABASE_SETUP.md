@@ -56,10 +56,17 @@ docker compose logs -f postgres
 docker compose down -v && docker compose up -d
 ```
 
+### Initialize the Schema Locally
+After connecting, apply the baseline schema (including the `pgcrypto` and `pgvector` extensions) with the bundled SQL file:
+
+```bash
+psql "$DATABASE_URL" -f scripts/ragsuite/schema.sql
+```
+
 ### Example Vector Operations
 ```sql
 -- Insert a document with embedding
-INSERT INTO documents (content, metadata, embedding) 
+INSERT INTO documents (content, metadata, embedding)
 VALUES ('Your document content', '{"source": "api"}', your_vector_array);
 
 -- Search for similar documents
@@ -70,3 +77,4 @@ SELECT * FROM search_documents(your_query_vector, 0.7, 10);
 - Vector dimensions are fixed at 1,536 (OpenAI embedding size)
 - Cosine similarity powers vector comparisons
 - Timestamp columns are stored with timezone information
+- `scripts/ragsuite/schema.sql` provisions the schema, while `pytest tests/test_ragsuite_db.py` runs an end-to-end smoke test covering inserts, cascading deletes, metadata round-tripping, and vector similarity search
