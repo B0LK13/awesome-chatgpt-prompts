@@ -2,10 +2,13 @@ import json
 import math
 import os
 from datetime import datetime, timezone
+from typing import List
 
-import numpy as np
-import psycopg
-from pgvector.psycopg import register_vector
+import pytest
+
+psycopg = pytest.importorskip("psycopg")
+pgvector_psycopg = pytest.importorskip("pgvector.psycopg")
+register_vector = pgvector_psycopg.register_vector
 
 
 def _connection_info() -> str:
@@ -17,18 +20,20 @@ def _connection_info() -> str:
     return f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
 
 
-def _unit_embedding(index: int, dimension: int = 1536) -> np.ndarray:
-    vector = np.zeros(dimension, dtype=np.float32)
+def _unit_embedding(index: int, dimension: int = 1536) -> List[float]:
+    vector = [0.0] * dimension
     vector[index] = 1.0
     return vector
 
 
-def _hybrid_embedding(index_a: int, index_b: int, dimension: int = 1536) -> np.ndarray:
-    vector = np.zeros(dimension, dtype=np.float32)
+def _hybrid_embedding(index_a: int, index_b: int, dimension: int = 1536) -> List[float]:
+    vector = [0.0] * dimension
     vector[index_a] = 0.8
     vector[index_b] = 0.6
-    norm = np.linalg.norm(vector)
-    return vector / norm
+    norm = math.sqrt(sum(value * value for value in vector))
+    if norm == 0:
+        return vector
+    return [value / norm for value in vector]
 
 
 class TestDatabaseOperations:

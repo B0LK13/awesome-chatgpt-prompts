@@ -63,6 +63,16 @@ After connecting, apply the baseline schema (including the `pgcrypto` and `pgvec
 psql "$DATABASE_URL" -f scripts/ragsuite/schema.sql
 ```
 
+### Run the Integration Tests
+The integration tests exercise the live database using `pytest`. Install the Python dependencies (psycopg binary wheels, pgvector bindings, and pytest) before executing the suite:
+
+```bash
+python -m pip install "psycopg[binary]" pgvector pytest
+pytest tests/test_ragsuite_db.py
+```
+
+If the optional dependencies are unavailable, the suite will be skipped automatically.
+
 ### Example Vector Operations
 ```sql
 -- Insert a document with embedding
